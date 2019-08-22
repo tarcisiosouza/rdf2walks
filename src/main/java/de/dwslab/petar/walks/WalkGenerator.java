@@ -104,7 +104,7 @@ public class WalkGenerator {
 		 
 	     dataset = TDBFactory.createDataset(repoLocation);
 	     model = ModelFactory.createDefaultModel();
-	     model.read("/home/souza/rdf2vec/entities/");
+	     model.read("/home/souza/rdf2vec/entities/mappingbased_objects_en.ttl.gz");
 	    /* 
 	     Triple triple = SSE.parseTriple("(<"+ line + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing>)") ;
 			g2.add(triple) ;
