@@ -86,7 +86,7 @@ public class PathCleaner {
 							newLine = newLine.replace("http://xmlns.com/foaf/0.1/name ", "");
 							newLine = newLine.replace("http://xmlns.com/foaf/0.1/homepage", "");
 							newLine = newLine.replace("->", " ");
-							if (!headLine.isEmpty())
+							/*if (!headLine.isEmpty())
 							{
 								if (!newLine.contains(headLine))
 								{
@@ -99,8 +99,8 @@ public class PathCleaner {
 							{
 								StringTokenizer tokenLines = new StringTokenizer (newLine);
 								headLine = tokenLines.nextToken();
-							}
-							//newLine = relationPharseConvertion (newLine);
+							}*/
+							newLine = relationPerLineConversion(newLine);
 							//writer.write(newLine.replace("->", " ") + "\n");
 							writer.write(newLine + " ");
 						//	System.out.println(newLine);
@@ -153,6 +153,40 @@ public class PathCleaner {
 		}
 		return newStr;
 	}
+	
+	private static String relationPerLineConversion (String str)
+	{
+		StringTokenizer token = new StringTokenizer (str);
+		String newStr = "";
+		int count = 0;
+		while (token.hasMoreElements())
+		{
+			String current = token.nextToken();
+			if (current.contains("dbr:"))
+			{
+				if (newStr.isEmpty())
+					newStr = newStr + current;
+				else
+					newStr = newStr + " " + current;
+				    count++;
+			}
+			else
+			{
+				newStr = newStr + " " + current;
+			}
+			
+			if (count==2)
+			{
+				if (token.hasMoreTokens())
+				{
+					newStr = newStr + "\n" + current;
+					count = 1;
+				}
+			}
+		}
+		return newStr;
+	}
+	
 	public static void main(String[] args) {
 
 		cleanPaths(args[0], args[1]);
