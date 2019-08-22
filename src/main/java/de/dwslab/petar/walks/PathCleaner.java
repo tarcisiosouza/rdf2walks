@@ -47,10 +47,10 @@ public class PathCleaner {
 				while ((line = br.readLine()) != null) {
 					counter++;
 					
-					if (counter % 100000 == 0)
+					if (counter % 1000 == 0)
 					{
-						System.out.println("Line nm: " + counter);
-						
+						//System.out.println("Line nm: " + counter);
+						writer.write("\n");
 					}
 					String newLine = "";
 					try {
@@ -100,7 +100,7 @@ public class PathCleaner {
 								StringTokenizer tokenLines = new StringTokenizer (newLine);
 								headLine = tokenLines.nextToken();
 							}*/
-							newLine = relationPerLineConversion(newLine);
+							//newLine = relationPerLineConversion(newLine);
 							//writer.write(newLine.replace("->", " ") + "\n");
 							writer.write(newLine + " ");
 						//	System.out.println(newLine);
