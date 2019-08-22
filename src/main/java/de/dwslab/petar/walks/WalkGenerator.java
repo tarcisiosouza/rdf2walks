@@ -47,11 +47,11 @@ public class WalkGenerator {
 	/**
 	 * defines the depth of the walk (only nodes are considered as a step)
 	 */
-	public static int depthWalk = 7;
+	public static int depthWalk = 15;
 	/**
 	 * defines the number of walks from each node
 	 */
-	public static int numberWalks = 200;
+	public static int numberWalks = 500;
 
 	/**
 	 * the query for extracting paths
@@ -104,7 +104,7 @@ public class WalkGenerator {
 		 
 	     dataset = TDBFactory.createDataset(repoLocation);
 	     model = ModelFactory.createDefaultModel();
-	     model.read("/home/souza/rdf2vec/labels");
+	     model.read("/home/souza/rdf2vec/entities");
 	    /* 
 	     Triple triple = SSE.parseTriple("(<"+ line + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing>)") ;
 			g2.add(triple) ;
