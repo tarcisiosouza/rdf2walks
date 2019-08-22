@@ -47,10 +47,10 @@ public class PathCleaner {
 				while ((line = br.readLine()) != null) {
 					counter++;
 					
-					if (counter % 1000 == 0)
+					if (counter % 100000 == 0)
 					{
-						//System.out.println("Line nm: " + counter);
-						writer.write("\n");
+						System.out.println("Line nm: " + counter);
+						//writer.write("\n");
 					}
 					String newLine = "";
 					try {
@@ -85,6 +85,7 @@ public class PathCleaner {
 							seenPaths.put(newLine, 1);
 							newLine = newLine.replace("http://xmlns.com/foaf/0.1/name ", "");
 							newLine = newLine.replace("http://xmlns.com/foaf/0.1/homepage", "");
+							newLine = newLine.replace("rdfs:seeAlso", "");
 							newLine = newLine.replace("->", " ");
 							/*if (!headLine.isEmpty())
 							{
