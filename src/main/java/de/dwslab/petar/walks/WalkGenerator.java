@@ -104,7 +104,7 @@ public class WalkGenerator {
 		 
 	     dataset = TDBFactory.createDataset(repoLocation);
 	     model = ModelFactory.createDefaultModel();
-	     model.read("/home/souza/rdf2vec/entities/mappingbased_objects_en.ttl.gz");
+	     model.read("/home/souza/rdf2vec/entities/entities.ttl.gz");
 	    /* 
 	     Triple triple = SSE.parseTriple("(<"+ line + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing>)") ;
 			g2.add(triple) ;
@@ -114,7 +114,8 @@ public class WalkGenerator {
 		*/
 		System.out.println("	SELECTING all entities from repo");
 		List<String> entities = selectAllEntities(offset, limit);
-//		List<String> entities = selectAllEntitiesFromFile (inputFile,offset, limit);
+		//List<String> entities = selectAllEntitiesFromFile (inputFile);
+		//List<String> entitiesTotal = selectAllEntities (offset, limit);
 
 		System.out.println("Total number of entities to process: "
 				+ entities.size());
@@ -164,7 +165,6 @@ public class WalkGenerator {
 	String queryStrign = "SELECT DISTINCT (COUNT(?s) AS ?count) where {?s ?p ?o } ";  
 		Query query = QueryFactory.create(queryStrign);
 
-		
 		// Execute the query and obtain results
 		QueryExecution qe = QueryExecutionFactory.create(query, model);
 		ResultSet results = qe.execSelect();
@@ -177,7 +177,7 @@ public class WalkGenerator {
 //			allEntities.add(result.get("s").toString());
 		}
 		
-		String queryStrign2 =  "SELECT ?s where {?s ?p ?o } OFFSET " + offset + " LIMIT " + totalEntities ;
+		String queryStrign2 =  "SELECT ?s ?o where {?s ?p ?o }" /*OFFSET " + offset + " LIMIT " + totalEntities*/ ;
 		Query query2 = QueryFactory.create(queryStrign2);
 		
 		qe = QueryExecutionFactory.create(query2, model);
@@ -185,7 +185,11 @@ public class WalkGenerator {
 		
 		while (results.hasNext()) {
 			QuerySolution result = results.next();
-			allEntities.add(result.get("s").toString());
+			
+			 if (!allEntities.contains(result.get("s").toString()))
+				allEntities.add(result.get("s").toString());
+			 if (!allEntities.contains(result.get("o").toString()))
+				allEntities.add(result.get("o").toString());
 		}
 		
 		qe.close();
@@ -198,7 +202,7 @@ public class WalkGenerator {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static List<String> selectAllEntitiesFromFile(String filePath, int offset, int limit) throws IOException {
+	public static List<String> selectAllEntitiesFromFile(String filePath) throws IOException {
 		List<String> allEntities = new ArrayList<String>();
 
 		File f = new File (filePath);
@@ -206,34 +210,14 @@ public class WalkGenerator {
 		
 		BufferedReader br = new BufferedReader (fr);
 		
-		 String graphName = "http://entities/" ;
-	   
-		 Graph g2 = dataset.asDatasetGraph().getGraph(NodeFactory.createURI(graphName)) ; 
-	     
-	     
+		
 		String line = "";
 		while ((line=br.readLine())!=null)
 		{
-			Triple triple = SSE.parseTriple("(<"+ line + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing>)") ;
-			g2.add(triple) ;
+			if (!allEntities.contains(line))
+				allEntities.add(line);
 		}
 		
-		model = ModelFactory.createModelForGraph(g2) ;
-		
-		String queryStrign = "Select ?s Where { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing>} OFFSET "
-				+ offset + "LIMIT " + limit;
-		Query query = QueryFactory.create(queryStrign);
-
-		// Execute the query and obtain results
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet results = qe.execSelect();
-
-		while (results.hasNext()) {
-			QuerySolution result = results.next();
-			allEntities.add(result.get("s").toString());
-		}
-		
-		qe.close();
 		return allEntities;
 		
 	}
@@ -364,6 +348,7 @@ public class WalkGenerator {
 			ResultSet results = ResultSetFactory.copyResults(resultsTmp);
 			qe.close();
 			dataset.end();
+		
 			while (results.hasNext()) {
 				QuerySolution result = results.next();
 				String singleWalk = entityShort + "->";
@@ -371,13 +356,13 @@ public class WalkGenerator {
 				for (String var : results.getResultVars()) {
 					try {
 						// clean it if it is a literal
-						if (result.get(var) != null
+					/*	if (result.get(var) != null
 								&& result.get(var).isLiteral()) {
 							String val = result.getLiteral(var).toString();
 							val = val.replace("\n", " ").replace("\t", " ")
 									.replace("->", "");
 							singleWalk += val + "->";
-						} else if (result.get(var) != null) {
+						} else */if (result.get(var) != null) {
 							singleWalk += result
 									.get(var)
 									.toString()
@@ -393,6 +378,7 @@ public class WalkGenerator {
 											"rdfs:").replace("->", "")
 									+ "->";
 						}
+						
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
