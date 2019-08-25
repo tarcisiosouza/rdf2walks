@@ -190,8 +190,8 @@ public class PathCleaner {
 	
 	public static void main(String[] args) {
 
-		//cleanPaths(args[0], args[1]);
-		 cleanPaths("/Volumes/DATA/walks/",
-		 "/Volumes/DATA/walks/out");
+		cleanPaths(args[0], args[1]);
+		/* cleanPaths("/Volumes/DATA/walks/",
+		 "/Volumes/DATA/walks/out");*/
 	}
 }
