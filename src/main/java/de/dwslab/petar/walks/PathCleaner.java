@@ -103,7 +103,7 @@ public class PathCleaner {
 							}*/
 							//newLine = relationPerLineConversion(newLine);
 							//writer.write(newLine.replace("->", " ") + "\n");
-							writer.write(newLine + " ");
+							writer.write(newLine);
 						//	System.out.println(newLine);
 						}
 
@@ -190,8 +190,8 @@ public class PathCleaner {
 	
 	public static void main(String[] args) {
 
-		cleanPaths(args[0], args[1]);
-		// cleanPaths("C:/Users/petar/Desktop/input",
-		// "C:/Users/petar/Desktop/output");
+		//cleanPaths(args[0], args[1]);
+		 cleanPaths("/Volumes/DATA/walks/",
+		 "/Volumes/DATA/walks/out");
 	}
 }
