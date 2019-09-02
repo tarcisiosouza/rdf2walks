@@ -47,7 +47,7 @@ public class PathCleaner {
 				while ((line = br.readLine()) != null) {
 					counter++;
 					
-					if (counter % 100000 == 0)
+					if (counter % 1000 == 0)
 					{
 						System.out.println("Line nm: " + counter);
 						//writer.write("\n");
@@ -65,18 +65,19 @@ public class PathCleaner {
 							// for (int i = 0; i < parts.length - 2; i++) {
 							// newLine += parts[i] + "->";
 							// }
+							
 							newLine = line.substring(0, line.lastIndexOf("->"));
 							newLine = newLine.substring(0,
 									newLine.lastIndexOf("->"));
 							if (lastPart.contains("^^"))
 							{
-								newLine = newLine+ " " + lastPart.substring(0,lastPart.lastIndexOf("^")-1);
+								newLine = newLine+ " " + lastPart.substring(0,lastPart.lastIndexOf("^")-1) + " ";
 							}
 							
 							if (lastPart.contains("@"))
 							{
-								newLine = newLine + " " + lastPart.substring(0,lastPart.lastIndexOf("@") - 1);
-							}
+								newLine = newLine + " " + lastPart.substring(0,lastPart.lastIndexOf("@")) + " ";
+							}	
 
 						} else {
 							newLine = line;
@@ -85,8 +86,72 @@ public class PathCleaner {
 							seenPaths.put(newLine, 1);
 							newLine = newLine.replace("http://xmlns.com/foaf/0.1/name ", "");
 							newLine = newLine.replace("http://xmlns.com/foaf/0.1/homepage", "");
+							newLine = newLine.replace("http://www.w3.org/2002/07/owl#differentFrom", "different from ");
+							
+							newLine = newLine.replace("http://xmlns.com/foaf/0.1/nick", "nick");
 							newLine = newLine.replace("rdfs:seeAlso", "");
+
+						
 							newLine = newLine.replace("->", " ");
+							newLine = newLine.replace("  ", " ");
+							
+					/*		StringTokenizer tokenLine = new StringTokenizer (newLine);
+							String current = "";
+							newLine = "";
+							while (tokenLine.hasMoreElements())
+							{
+								current = tokenLine.nextToken();
+							if (current.contains("dbo:"))
+							{
+								current = current.replace("dbo:", "");
+								char[] linechar = current.toCharArray();
+								current = "";
+								for (int i=0;i<linechar.length;i++)
+								{
+									if (Character.isUpperCase(linechar[i]))
+										newLine = newLine + " " + Character.toLowerCase(linechar[i]);
+									else
+										newLine = newLine + linechar[i];
+								}
+								
+								newLine = newLine + " ";
+							}
+							else if (current.contains("dbr:"))
+							{
+								if (current.contains("\\("))
+								{
+									current = current.replace("\\(", " ");
+									current = current.replace("\\)", "");
+								}
+								
+								String copyDbr;
+								
+								if (current.contains("_"))
+									copyDbr = current.replaceAll("_", " ");
+								else
+									copyDbr = current;
+								
+								StringTokenizer tokencopyDbr = new StringTokenizer (copyDbr);
+								while (tokencopyDbr.hasMoreElements())
+								{
+									String str = tokencopyDbr.nextToken();
+									
+									newLine = newLine + str + " ";
+								}
+								
+								if (current.contains("_"))
+									newLine = newLine + current + " ";
+								
+							}
+							}
+							
+							newLine = newLine.replace("dbr:", "");
+							*/
+							//newLine = newLine.replace("_", " ");
+							newLine = newLine.replace("->", " ");
+							newLine = newLine.replace("  ", " ");
+						//	System.out.println(newLine);
+
 							/*if (!headLine.isEmpty())
 							{
 								if (!newLine.contains(headLine))
@@ -103,7 +168,12 @@ public class PathCleaner {
 							}*/
 							//newLine = relationPerLineConversion(newLine);
 							//writer.write(newLine.replace("->", " ") + "\n");
-							writer.write(newLine);
+						/*	newLine = newLine.replace("\\(", "");
+							newLine = newLine.replace("\\)", "");
+							newLine = newLine.replace("\\,", "");*/
+							newLine = newLine.replace("  ", " ");
+							writer.write(newLine + " ");
+							newLine = "";
 						//	System.out.println(newLine);
 						}
 
@@ -190,8 +260,8 @@ public class PathCleaner {
 	
 	public static void main(String[] args) {
 
-		cleanPaths(args[0], args[1]);
-		/* cleanPaths("/Volumes/DATA/walks/",
-		 "/Volumes/DATA/walks/out");*/
+	//	cleanPaths(args[0], args[1]);
+		 cleanPaths("/home/souza/rdf2vec/walkslcquadNew/",
+		 "/home/souza/rdf2vec/output/");
 	}
 }

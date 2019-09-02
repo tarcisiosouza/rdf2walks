@@ -11,8 +11,13 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
+import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -47,11 +52,11 @@ public class WalkGenerator {
 	/**
 	 * defines the depth of the walk (only nodes are considered as a step)
 	 */
-	public static int depthWalk = 15;
+	public static int depthWalk = 4;
 	/**
 	 * defines the number of walks from each node
 	 */
-	public static int numberWalks = 500;
+	public static int numberWalks = 200;
 
 	/**
 	 * the query for extracting paths
@@ -95,6 +100,12 @@ public class WalkGenerator {
 			e1.printStackTrace();
 		}
 
+		HashMap<Integer,Dictionary<String,Integer>> entitiesWithPositions = selectAllEntitiesFromFilePerQuery (inputFile);
+		
+		for (Integer key : entitiesWithPositions.keySet())
+			generateQueryFromEntities (depthWalk, numberWalks, entitiesWithPositions.get(key));
+		
+		
 		// generate the query
 		walkQuery = generateQuery(depthWalk, numberWalks);
 
@@ -104,7 +115,8 @@ public class WalkGenerator {
 		 
 	     dataset = TDBFactory.createDataset(repoLocation);
 	     model = ModelFactory.createDefaultModel();
-	     model.read("/home/souza/rdf2vec/entities/entities.ttl.gz");
+	     model.read("/home/souza/rdf2vec/entities/mappingbased_objects_en.ttl.gz");
+	   //  model.read("/home/souza/rdf2vec/entities/e.ttl.gz");
 	    /* 
 	     Triple triple = SSE.parseTriple("(<"+ line + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing>)") ;
 			g2.add(triple) ;
@@ -113,18 +125,21 @@ public class WalkGenerator {
 		model = ModelFactory.createModelForGraph(g2) ;
 		*/
 		System.out.println("	SELECTING all entities from repo");
-		List<String> entities = selectAllEntities(offset, limit);
+//		List<String> entities = selectAllEntities(offset, limit);
 		//List<String> entities = selectAllEntitiesFromFile (inputFile);
+		
 		//List<String> entitiesTotal = selectAllEntities (offset, limit);
 
-		System.out.println("Total number of entities to process: "
+	/*	System.out.println("Total number of entities to process: "
 				+ entities.size());
 		ThreadPoolExecutor pool = new ThreadPoolExecutor(nmThreads, nmThreads,
 				0, TimeUnit.SECONDS,
 				new java.util.concurrent.ArrayBlockingQueue<Runnable>(
 						entities.size()));
 
-		startTime = System.currentTimeMillis();
+		startTime = System.currentTimeMillis();*/
+		
+		/*
 		for (String entity : entities) {
 
 			EntityThread th = new EntityThread(entity);
@@ -147,7 +162,7 @@ public class WalkGenerator {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		 	*/
 	}
 
 	/**
@@ -222,6 +237,58 @@ public class WalkGenerator {
 		
 	}
 
+	/**
+	 * Selects all entities from the file
+	 * 
+	 * @return
+	 * @throws IOException 
+	 */
+	public static HashMap<Integer,Dictionary<String,Integer>> selectAllEntitiesFromFilePerQuery(String filePath) throws IOException {
+		List<String> allEntities = new ArrayList<String>();
+
+		HashMap<Integer,Dictionary<String,Integer>> queriesMap = new HashMap<Integer,Dictionary<String,Integer>>();
+		File f = new File (filePath);
+		FileReader fr = new FileReader (f);
+		
+		BufferedReader br = new BufferedReader (fr);
+		
+		
+		String line = "";
+		while ((line=br.readLine())!=null)
+		{
+			StringTokenizer token = new StringTokenizer (line);
+			
+			if (line.contains("#"))
+				continue;
+			
+			Dictionary<String,Integer> dict = new Hashtable<String,Integer>();
+			
+			while (token.hasMoreElements())
+			{
+				String e = token.nextToken();
+				int position = Integer.parseInt(token.nextToken());
+				int queryId = Integer.parseInt(token.nextToken());
+				
+				if (queriesMap.containsKey(queryId))
+				{
+					Dictionary<String,Integer> d = queriesMap.get(queryId);
+					d.put(e, position);
+					queriesMap.put(queryId, d);
+				}
+				else
+				{
+					Dictionary<String,Integer> d = new Hashtable<String,Integer>();
+					d.put(e, position);
+					queriesMap.put(queryId, d);
+				}
+			}
+		}
+		
+		return queriesMap;
+		
+	}
+
+	
 	
 	/**
 	 * Adds new walks to the list; If the list is filled it is written to the
@@ -287,12 +354,66 @@ public class WalkGenerator {
 			mainPart += ". ?o" + i + " ?p" + i + "?o" + (i + 1);
 			selectPart += " ?p" + i + "?o" + (i + 1);
 		}
-		query = selectPart + " WHERE " + mainPart + "} LIMIT 1000";
-		// + " BIND(RAND() AS ?sortKey) } ORDER BY ?sortKey LIMIT "
-		// + numberWalks;
+		//query = selectPart + " WHERE " + mainPart + "} LIMIT 1000";
+		query = selectPart + " WHERE " + mainPart + " " 
+		 + " BIND(RAND() AS ?sortKey) } ORDER BY ?sortKey LIMIT "
+		 + numberWalks;
 		return query;
 	}
-
+	
+	/**
+	 * generates the query with the given depth
+	 * 
+	 * @param depth
+	 * @return
+	 */
+	public static String generateQueryFromEntities(int depth, int numberWalks, Dictionary<String,Integer> dict) {
+		String selectPart = "SELECT ?p ?o1";
+		String mainPart = "{ $ENTITY$ ?p ?o1  ";
+		String query = "";
+		
+		for (Enumeration<String> e = dict.keys(); e.hasMoreElements();)
+		{
+			int position = dict.get(e.nextElement());
+			String uri = e.nextElement();
+			
+			if (position <=3)
+			{
+				switch (position)
+				{
+					case (1): 
+					{
+						mainPart = "{ $ENTITY$ ?p ?o1  ";
+						break;
+					}
+					case (2):
+					{
+						mainPart = "{ ?o1 $ENTITY$ ?o2  ";
+						selectPart = "SELECT ?o1 ?o2";
+						break;
+					}
+					case (3):
+					{
+						mainPart = "{ ?o1 ?p $ENTITY$  ";
+						break;
+					}
+				}
+				
+				mainPart = mainPart.replace("$ENTITY$", "<" + uri + ">");
+					
+			}
+			
+		}
+		for (int i = 1; i < depth; i++) {
+			mainPart += ". ?o" + i + " ?p" + i + "?o" + (i + 1);
+			selectPart += " ?p" + i + "?o" + (i + 1);
+		}
+		//query = selectPart + " WHERE " + mainPart + "} LIMIT 1000";
+		query = selectPart + " WHERE " + mainPart + " " 
+		 + " BIND(RAND() AS ?sortKey) } ORDER BY ?sortKey LIMIT "
+		 + numberWalks;
+		return query;
+	}
 	static class EntityThread implements Runnable {
 
 		private String entity;
