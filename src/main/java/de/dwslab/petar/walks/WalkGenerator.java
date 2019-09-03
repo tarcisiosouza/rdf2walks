@@ -11,15 +11,20 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,8 +107,8 @@ public class WalkGenerator {
 
 		HashMap<Integer,Dictionary<String,Integer>> entitiesWithPositions = selectAllEntitiesFromFilePerQuery (inputFile);
 		
-		for (Integer key : entitiesWithPositions.keySet())
-			generateQueryFromEntities (depthWalk, numberWalks, entitiesWithPositions.get(key));
+		for (Entry<Integer, Dictionary<String, Integer>> entry : entitiesWithPositions.entrySet())
+			generateQueryFromEntities (depthWalk, numberWalks, entry.getValue());
 		
 		
 		// generate the query
@@ -372,46 +377,54 @@ public class WalkGenerator {
 		String mainPart = "{ $ENTITY$ ?p ?o1  ";
 		String query = "";
 		
-		for (Enumeration<String> e = dict.keys(); e.hasMoreElements();)
+		List<String> keys = Collections.list(dict.keys());
+		Map<String, Integer> dictCopy = keys.stream().collect(Collectors.toMap(Function.identity(), dict::get));
+		
+		for (Entry<String,Integer> e : dictCopy.entrySet())
 		{
-			int position = dict.get(e.nextElement());
-			String uri = e.nextElement();
-			
+			int position = e.getValue();
+			String uri = e.getKey();
+			String nameVar = "$ENTITY" + position + "$";
 			if (position <=3)
 			{
 				switch (position)
 				{
 					case (1): 
 					{
-						mainPart = "{ $ENTITY$ ?p ?o1  ";
+						mainPart = "{ " + nameVar + " ?p ?o1  ";
 						break;
 					}
 					case (2):
 					{
-						mainPart = "{ ?o1 $ENTITY$ ?o2  ";
+						mainPart = "{ ?o1 " + nameVar + " ?o2  ";
 						selectPart = "SELECT ?o1 ?o2";
 						break;
 					}
 					case (3):
 					{
-						mainPart = "{ ?o1 ?p $ENTITY$  ";
+						mainPart = "{ ?o1 ?p " + nameVar;
 						break;
 					}
 				}
 				
-				mainPart = mainPart.replace("$ENTITY$", "<" + uri + ">");
+				mainPart = mainPart.replace(nameVar, "<" + uri + ">");
 					
 			}
+			else if (position > 3 && position <=6)
+			{
+				mainPart = "{ ?o1 ?p ?o2  ";
+			}
+				
 			
 		}
 		for (int i = 1; i < depth; i++) {
 			mainPart += ". ?o" + i + " ?p" + i + "?o" + (i + 1);
 			selectPart += " ?p" + i + "?o" + (i + 1);
 		}
-		//query = selectPart + " WHERE " + mainPart + "} LIMIT 1000";
-		query = selectPart + " WHERE " + mainPart + " " 
+		query = selectPart + " WHERE " + mainPart + " } LIMIT " + numberWalks;
+		/*query = selectPart + " WHERE " + mainPart + " " 
 		 + " BIND(RAND() AS ?sortKey) } ORDER BY ?sortKey LIMIT "
-		 + numberWalks;
+		 + numberWalks;*/
 		return query;
 	}
 	static class EntityThread implements Runnable {
